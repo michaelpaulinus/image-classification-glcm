@@ -1,5 +1,5 @@
 # Image Classification using GLCM
- This project used Haralick features from a Gray Level Co-occurrence Matrix (GLCM) to classify X-ray scans of a chest as that of a chest that is normal or having pneumonia.
+ This project uses Haralick features from a Gray Level Co-occurrence Matrix (GLCM) to classify X-ray scans of a chest as that of a chest that is normal or having pneumonia.
 
 
 The dataset used for the project was taken from: https://www.kaggle.com/paultimothymooney/chest-xray-pneumonia. It consisted of a total of 5276 images for training and 624 images for testing.
