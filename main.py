@@ -1,5 +1,4 @@
 import matplotlib.pyplot as plt
-import matplotlib
 from skimage.feature import greycomatrix, greycoprops
 import numpy as np
 import cv2
@@ -7,7 +6,7 @@ import glob
 from sklearn import metrics
 from sklearn.neural_network import MLPClassifier # import Multilayer Perceptron classifier
 from sklearn.naive_bayes import GaussianNB # import Naive Bayes classifier
-from sklearn import svm # import Support Vector Machine classifier
+from sklearn.svm import SVC,LinearSVC # import Support Vector Machine classifier
 
 # get haralick features function
 def extract_features(img):
@@ -18,6 +17,7 @@ def extract_features(img):
     homogeneity = greycoprops(glcm, 'homogeneity')
     contrast = greycoprops(glcm, 'contrast')
     dissimilarity = greycoprops(glcm, 'dissimilarity')
+    correlation = greycoprops(glcm, 'correlation')
 
     # compute entropy
     p = np.zeros((256, 256, 2, 4)) # probability matrix
@@ -25,9 +25,12 @@ def extract_features(img):
     for d in range(2):
         for theta in range(4):
             p[:,:,d,theta] = glcm[:,:,d,theta]/glcm[:,:,d,theta].sum()
-            entropy[d,theta] = sum([x*(-np.log(x)) if x!=0 else 0 for x in p[:,:,d,theta].flatten()])
+            entropy[d,theta] = sum([
+                x*(-np.log(x)) if x!=0 else 0 for x in p[:,:,d,theta].flatten()
+                ])
+    return np.array([energy, homogeneity, contrast, dissimilarity, correlation, entropy])
 
-    return np.array([energy, homogeneity, contrast, dissimilarity, entropy])
+vector = 2 * 4 * 6 # distances * orientations * number of features
 
 # store image folder into variable
 path_normal_train = glob.glob("chest_xray_dataset\\train\\NORMAL\\*.jpeg")
@@ -44,7 +47,7 @@ normal_img_test = []
 pneumonia_img_test = []
 
 # read images into array
-print('Loading train images . . .')
+print('[STATUS] Loading train images...')
 for img in path_normal_train:
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_train.append(n)
@@ -53,7 +56,7 @@ for img in path_pneumonia_train:
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     pneumonia_img_train.append(n)
 
-print('Loading test images . . .')
+print('[STATUS] Loading test images...')
 for img in path_normal_test:
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_test.append(n)
@@ -62,100 +65,111 @@ for img in path_pneumonia_test:
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     pneumonia_img_test.append(n)
 
-X_train = []
-y_train = []
+# empty list to hold feature vectors and train labels
+train_features = []
+train_labels = []
 
-X_test = []
-y_test = []
+# empty list to hold feature vectors and test labels
+test_features = []
+test_labels = []
 
 ############################ HARALICK FEATURES OF TRAIN DATA ############################
 # extract haralick features of normal chest
+print('[STATUS] Extracting haralick features of normal chests from train data...')
 for img in normal_img_train:
-    img_class = 0 # normal
-    features = extract_features(img)
-    X_train.append(features)
-    y_train.append(img_class)
+        img_class = 0 # normal
+        features = extract_features(img)
+        train_features.append(features)
+        train_labels.append(img_class)
 
 # extract haralick features of pneumonia chest
+print('[STATUS] Extracting haralick features of pneumonia chests from train data...')
 for img in pneumonia_img_train:
     img_class = 1 # pneumonia
     features = extract_features(img)
-    X_train.append(features)
-    y_train.append(img_class)
+    train_features.append(features)
+    train_labels.append(img_class)
 
 total_train = len(normal_img_train) + len(pneumonia_img_train) # total train images
-vector = 2 * 4 * 5 # distances * orientations * number of features
-X_train = np.array(X_train).reshape(total_train, vector) 
+train_features = np.array(train_features).reshape(total_train, vector) 
 
 ############################ HARALICK FEATURES OF TEST DATA ############################
 # extract haralick features of normal chest
+print('[STATUS] Extracting haralick features of normal chests from test data...')
 for img in normal_img_test:
     img_class = 0 # normal
     features = extract_features(img)
-    X_test.append(features)
-    y_test.append(img_class)
+    test_features.append(features)
+    test_labels.append(img_class)
 
 # extract haralick features of pneumonia chest
+print('[STATUS] Extracting haralick features of pneumonia chests from test data...')
 for img in pneumonia_img_test:
     img_class = 1 # pneumonia
     features = extract_features(img)
-    X_test.append(features)
-    y_test.append(img_class)
+    test_features.append(features)
+    test_labels.append(img_class)
 
 total_test = len(normal_img_test) + len(pneumonia_img_test) # total test images
-X_test = np.array(X_test).reshape(total_test, vector)
+test_features = np.array(test_features).reshape(total_test, vector)
 
-# select classifier
-clf_sel = input('Select classifier: 1=MLP, 2=NBC, 3=SVM: ')
-# selecting and generating the model
-if clf_sel==1:
-    clf = MLPClassifier(solver='adam', alpha=0.0001,hidden_layer_sizes=(20, 30),max_iter=600)
-elif clf_sel==2:
-    clf = GaussianNB()
-elif clf_sel==3:
-    clf = svm.SVC()
-else: 
-    clf = MLPClassifier(solver='adam', alpha=0.0001,hidden_layer_sizes=(20, 30),max_iter=600)
+for i in range(3):
+    # select classifier
+    clf_sel = i 
+    if clf_sel==0:
+        clf = MLPClassifier(solver='adam', 
+                            alpha=0.0001,
+                            hidden_layer_sizes=(20, 30),
+                            max_iter=600)
+        s = 'MULTILAYER PERCEPTRON CLASSIFIER'
+    elif clf_sel==1:
+        clf = GaussianNB()
+        s = 'NAIVE BAYES CLASSIFIER'
+    elif clf_sel==2:
+        clf = LinearSVC()
+        s = 'SUPPORT VECTOR MACHINE CLASSIFIER'
 
-# train the model
-clf.fit(X_train, y_train)
-# predict the response
-y_pred = clf.predict(X_test)
+    # train the model
+    print('[STATUS] Training...')
+    clf.fit(train_features, train_labels)
+    # predict the response
+    pred_labels = clf.predict(test_features)
 
-# results
-print('############################ RESULTS ############################')
-normal_test = 0
-pneumonia_test = 0
+    # results
+    # determine number of normal/pneumonia images in test data
+    normal_test = 0
+    pneumonia_test = 0
 
-# determine number of normal/pneumonia images in test data
-for i in y_test:
-    if i==0:
-        normal_test = normal_test + 1
-    else:
-        pneumonia_test = pneumonia_test + 1
+    for j in test_labels:
+        if j==0:
+            normal_test += 1
+        else:
+            pneumonia_test += 1
 
-normal_predicted_correctly = 0
-pneumonia_predicted_correctly = 0
+    # determine number of correctly predicted images
+    normal_predicted_correctly = 0
+    pneumonia_predicted_correctly = 0
 
-# determine number of correctly predicted images
-for i in range(0, len(y_test)):
-    if y_test[i] == y_pred[i] == 0:
-        normal_predicted_correctly = normal_predicted_correctly + 1
-    elif y_test[i] == y_pred[i] == 1:
-        pneumonia_predicted_correctly = pneumonia_predicted_correctly + 1
+    for k in range(0, len(test_labels)):
+        if test_labels[k] == pred_labels[k] == 0:
+            normal_predicted_correctly += 1
+        elif test_labels[k] == pred_labels[k] == 1:
+            pneumonia_predicted_correctly += 1
 
-# summary
-print('- No. of normal samples in test samples: ', normal_test)
-print('- No. of normal samples predicted correctly: ', normal_predicted_correctly)
-print('- No. of pneumonia samples in test samples: ', pneumonia_test)
-print('- No. of pneumonia samples predicted correctly: ', pneumonia_predicted_correctly)
-print("- No. of mislabeled samples out of a total %d samples : %d" % (X_test.shape[0], (y_test != y_pred).sum()))
-
-# accuracy score
-print('- Accuracy: ', metrics.accuracy_score(y_test, y_pred))
-# precision score
-print('- Precision: ', metrics.precision_score(y_test, y_pred))
-
-print('\n- Test: ', y_test)
-print('\n- Predicted: ', y_pred)
-print('############################ END OF RESULTS ############################')
+    # summary
+    print('################# %s RESULTS #################' % s)
+    print('- No. of normal samples in test samples: ', normal_test)
+    print('- No. of normal samples predicted correctly: ', normal_predicted_correctly)
+    print('- No. of normal samples predicted incorrectly: ', normal_test - normal_predicted_correctly)
+    print('- No. of pneumonia samples in test samples: ', pneumonia_test)
+    print('- No. of pneumonia samples predicted correctly: ', pneumonia_predicted_correctly)
+    print('- No. of pneumonia samples predicted incorrectly: ', pneumonia_test - pneumonia_predicted_correctly)
+    print("- No. of mislabeled samples out of a total %d samples : %d" % (test_features.shape[0], (test_labels != pred_labels).sum()))
+    print('- Accuracy: ', metrics.accuracy_score(test_labels, pred_labels)) # accuracy score
+    print('- Test: ', test_labels)
+    print('- Predicted: ', pred_labels)
+    print('############################ END OF RESULTS ############################')
+    # confusion matrix
+    cm = metrics.confusion_matrix(test_labels, pred_labels)
+    cmd = (metrics.ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_)).plot()
+    plt.savefig('ConfusionMatrix_%s' % s)
