@@ -30,3 +30,6 @@ The dataset used for the project was taken from: https://www.kaggle.com/paultimo
 
  Installing tqdm
  pip install tqdm
+
+Installing Yellowbrick
+ pip install yellowbrick
