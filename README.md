@@ -15,3 +15,18 @@ The dataset used for the project was taken from: https://www.kaggle.com/paultimo
  1) Multilayer Perceptron Based Classifier - 50%
  2) Naive Bayes Classifier - 50%
  3) Support Vector Machines Based Classifier - 50%
+
+ Installing OpenCV
+ pip install opencv-python
+
+ Installing Numpy
+ pip install numpy
+
+ Installing scikit-image
+ pip install -U scikit-image
+
+ Installing scikit-learn
+ pip install -U scikit-learn
+
+ Installing tqdm
+ pip install tqdm
