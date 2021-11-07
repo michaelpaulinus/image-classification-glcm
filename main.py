@@ -7,6 +7,8 @@ from sklearn import metrics
 from sklearn.neural_network import MLPClassifier # import Multilayer Perceptron classifier
 from sklearn.naive_bayes import GaussianNB # import Naive Bayes classifier
 from sklearn.svm import SVC,LinearSVC # import Support Vector Machine classifier
+from tqdm import tqdm
+from yellowbrick.model_selection import learning_curve
 
 # get haralick features function
 def extract_features(img):
@@ -48,7 +50,7 @@ pneumonia_img_test = []
 
 # read images into array
 print('[STATUS] Loading train images...')
-for img in path_normal_train:
+for img in tqdm(path_normal_train, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_train.append(n)
 
@@ -57,7 +59,7 @@ for img in path_pneumonia_train:
     pneumonia_img_train.append(n)
 
 print('[STATUS] Loading test images...')
-for img in path_normal_test:
+for img in tqdm(path_normal_test, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_test.append(n)
 
@@ -76,7 +78,7 @@ test_labels = []
 ############################ HARALICK FEATURES OF TRAIN DATA ############################
 # extract haralick features of normal chest
 print('[STATUS] Extracting haralick features of normal chests from train data...')
-for img in normal_img_train:
+for img in tqdm(normal_img_train, ncols=100):
         img_class = 0 # normal
         features = extract_features(img)
         train_features.append(features)
@@ -84,7 +86,7 @@ for img in normal_img_train:
 
 # extract haralick features of pneumonia chest
 print('[STATUS] Extracting haralick features of pneumonia chests from train data...')
-for img in pneumonia_img_train:
+for img in tqdm(pneumonia_img_train, ncols=100):
     img_class = 1 # pneumonia
     features = extract_features(img)
     train_features.append(features)
@@ -96,7 +98,7 @@ train_features = np.array(train_features).reshape(total_train, vector)
 ############################ HARALICK FEATURES OF TEST DATA ############################
 # extract haralick features of normal chest
 print('[STATUS] Extracting haralick features of normal chests from test data...')
-for img in normal_img_test:
+for img in tqdm(normal_img_test, ncols=100):
     img_class = 0 # normal
     features = extract_features(img)
     test_features.append(features)
@@ -104,7 +106,7 @@ for img in normal_img_test:
 
 # extract haralick features of pneumonia chest
 print('[STATUS] Extracting haralick features of pneumonia chests from test data...')
-for img in pneumonia_img_test:
+for img in tqdm(pneumonia_img_test, ncols=100):
     img_class = 1 # pneumonia
     features = extract_features(img)
     test_features.append(features)
@@ -170,6 +172,7 @@ for i in range(3):
     print('- Predicted: ', pred_labels)
     print('############################ END OF RESULTS ############################')
     # confusion matrix
-    cm = metrics.confusion_matrix(test_labels, pred_labels)
-    cmd = (metrics.ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_)).plot()
-    plt.savefig('ConfusionMatrix_%s' % s)
+    # cm = metrics.confusion_matrix(test_labels, pred_labels)
+    # cmd = (metrics.ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_)).plot()
+    # plt.savefig('ConfusionMatrix_%s' % s)
+    print(learning_curve(clf, train_features, train_labels, cv=10, scoring='accuracy'))
