@@ -9,9 +9,8 @@ from sklearn.naive_bayes import GaussianNB # import Naive Bayes classifier
 from sklearn.svm import SVC,LinearSVC # import Support Vector Machine classifier
 from tqdm import tqdm
 from sklearn.model_selection import learning_curve
-from sklearn.model_selection import ShuffleSplit
 
-# get haralick features function
+############################ FUNCTIONS ############################
 def extract_features(img):
     # create glcm of an image (distance=[1,2], angles=[0,45,90,135])
     glcm = greycomatrix(img, [1,2], [0, np.pi/4, np.pi/2, 3*np.pi/4], levels=256)
@@ -46,65 +45,6 @@ def plot_learning_curve(
     n_jobs=None,
     train_sizes=np.linspace(0.1, 1.0, 5),
 ):
-    """
-    Generate 3 plots: the test and training learning curve, the training
-    samples vs fit times curve, the fit times vs score curve.
-
-    Parameters
-    ----------
-    estimator : estimator instance
-        An estimator instance implementing `fit` and `predict` methods which
-        will be cloned for each validation.
-
-    title : str
-        Title for the chart.
-
-    X : array-like of shape (n_samples, n_features)
-        Training vector, where ``n_samples`` is the number of samples and
-        ``n_features`` is the number of features.
-
-    y : array-like of shape (n_samples) or (n_samples, n_features)
-        Target relative to ``X`` for classification or regression;
-        None for unsupervised learning.
-
-    axes : array-like of shape (3,), default=None
-        Axes to use for plotting the curves.
-
-    ylim : tuple of shape (2,), default=None
-        Defines minimum and maximum y-values plotted, e.g. (ymin, ymax).
-
-    cv : int, cross-validation generator or an iterable, default=None
-        Determines the cross-validation splitting strategy.
-        Possible inputs for cv are:
-
-          - None, to use the default 5-fold cross-validation,
-          - integer, to specify the number of folds.
-          - :term:`CV splitter`,
-          - An iterable yielding (train, test) splits as arrays of indices.
-
-        For integer/None inputs, if ``y`` is binary or multiclass,
-        :class:`StratifiedKFold` used. If the estimator is not a classifier
-        or if ``y`` is neither binary nor multiclass, :class:`KFold` is used.
-
-        Refer :ref:`User Guide <cross_validation>` for the various
-        cross-validators that can be used here.
-
-    n_jobs : int or None, default=None
-        Number of jobs to run in parallel.
-        ``None`` means 1 unless in a :obj:`joblib.parallel_backend` context.
-        ``-1`` means using all processors. See :term:`Glossary <n_jobs>`
-        for more details.
-
-    train_sizes : array-like of shape (n_ticks,)
-        Relative or absolute numbers of training examples that will be used to
-        generate the learning curve. If the ``dtype`` is float, it is regarded
-        as a fraction of the maximum size of the training set (that is
-        determined by the selected validation method), i.e. it has to be within
-        (0, 1]. Otherwise it is interpreted as absolute sizes of the training
-        sets. Note that for classification the number of samples usually have
-        to be big enough to contain at least one sample from each class.
-        (default: np.linspace(0.1, 1.0, 5))
-    """
     if axes is None:
         _, axes = plt.subplots(1, 3, figsize=(20, 5))
 
@@ -182,6 +122,7 @@ def plot_learning_curve(
 
     return plt
 
+############################ PROGRAM ############################
 # store image folder into variable
 path_normal_train = glob.glob("chest_xray_dataset\\train\\NORMAL\\*.jpeg")
 path_pneumonia_train = glob.glob("chest_xray_dataset\\train\\PNEUMONIA\\*.jpeg")
@@ -197,21 +138,23 @@ normal_img_test = []
 pneumonia_img_test = []
 
 # read images into array
-print('[STATUS] Loading train images...')
+print('[STATUS] Loading normal train images...')
 for img in tqdm(path_normal_train, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_train.append(n)
 
-for img in path_pneumonia_train:
+print('[STATUS] Loading pneumonia train images...')
+for img in tqdm(path_pneumonia_train, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     pneumonia_img_train.append(n)
 
-print('[STATUS] Loading test images...')
+print('[STATUS] Loading normal test images...')
 for img in tqdm(path_normal_test, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     normal_img_test.append(n)
 
-for img in path_pneumonia_test:
+print('[STATUS] Loading pneumonia test images...')
+for img in tqdm(path_pneumonia_test, ncols=100):
     n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
     pneumonia_img_test.append(n)
 
@@ -263,6 +206,7 @@ for img in tqdm(pneumonia_img_test, ncols=100):
 total_test = len(normal_img_test) + len(pneumonia_img_test) # total test images
 test_features = np.array(test_features).reshape(total_test, vector)
 
+############################ TRAINING ############################
 for i in range(3):
     # select classifier
     clf_sel = i 
@@ -271,13 +215,13 @@ for i in range(3):
                             alpha=0.0001,
                             hidden_layer_sizes=(20, 30),
                             max_iter=600)
-        s = 'MLP'
+        clf_str = 'MLP'
     elif clf_sel==1:
         clf = GaussianNB()
-        s = 'NBC'
+        clf_str = 'NBC'
     elif clf_sel==2:
         clf = LinearSVC()
-        s = 'SVM'
+        clf_str = 'SVM'
 
     # train the model
     print('[STATUS] Training...')
@@ -285,7 +229,7 @@ for i in range(3):
     # predict the response
     pred_labels = clf.predict(test_features)
 
-    # results
+    ############################ RESULTS ############################
     # determine number of normal/pneumonia images in test data
     normal_test = 0
     pneumonia_test = 0
@@ -307,7 +251,7 @@ for i in range(3):
             pneumonia_predicted_correctly += 1
 
     # summary
-    print('################# %s RESULTS #################' % s)
+    print('################# %s RESULTS #################' % clf_str)
     print('- No. of normal samples in test samples: ', normal_test)
     print('- No. of normal samples predicted correctly: ', normal_predicted_correctly)
     print('- No. of normal samples predicted incorrectly: ', normal_test - normal_predicted_correctly)
@@ -322,14 +266,9 @@ for i in range(3):
     # confusion matrix
     cm = metrics.confusion_matrix(test_labels, pred_labels)
     metrics.ConfusionMatrixDisplay(confusion_matrix=cm,display_labels=clf.classes_).plot()
-    plt.savefig('ConfusionMatrix_%s' % s)
+    plt.savefig('ConfusionMatrix_%s' % clf_str)
     plt.close()
-    # learning curve 1
-    plot_learning_curve(clf, 'Learning Curve (%s)'%s, train_features, train_labels,  ylim=(0.7, 1.01), cv=10)
-    plt.savefig('LearningCurve_%s' % s)
-    plt.close()
-    # learning curve 2
-    cv = ShuffleSplit(n_splits=10, test_size=0.2, random_state=0)
-    plot_learning_curve(clf, 'Learning Curve (%s)'%s, train_features, train_labels,  ylim=(0.7, 1.01), cv=cv, n_jobs=4)
-    plt.savefig('LearningCurve2_%s' % s)
+    # learning curve
+    plot_learning_curve(clf, 'Learning Curve (%s)'%clf_str, train_features, train_labels,  ylim=(0.7, 1.01), cv=10)
+    plt.savefig('LearningCurve_%s' % clf_str)
     plt.close()
