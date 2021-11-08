@@ -16,17 +16,18 @@ The dataset used for the project was taken from: https://www.kaggle.com/paultimo
  2) Naive Bayes Classifier - 50%
  3) Support Vector Machines Based Classifier - 50%
 
- Installing OpenCV
+ # Installing OpenCV
+ ```bash
  pip install opencv-python
-
- Installing Numpy
+ ```
+ # Installing Numpy
  pip install numpy
 
- Installing scikit-image
+ # Installing scikit-image
  pip install -U scikit-image
 
- Installing scikit-learn
+ # Installing scikit-learn
  pip install -U scikit-learn
 
- Installing tqdm
+ # Installing tqdm
  pip install tqdm
