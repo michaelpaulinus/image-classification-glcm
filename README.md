@@ -21,13 +21,18 @@ The dataset used for the project was taken from: https://www.kaggle.com/paultimo
  pip install opencv-python
  ```
  # Installing Numpy
+ ```bash
  pip install numpy
-
+ ```
  # Installing scikit-image
+ ```bash
  pip install -U scikit-image
-
+ ```
  # Installing scikit-learn
+ ```bash
  pip install -U scikit-learn
-
+ ```
  # Installing tqdm
+ ```bash
  pip install tqdm
+ ```
