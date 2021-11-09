@@ -220,7 +220,8 @@ for i in range(3):
         clf = GaussianNB()
         clf_str = 'NBC'
     elif clf_sel==2:
-        clf = LinearSVC()
+        # clf = LinearSVC()
+        clf = SVC(kernel='linear')
         clf_str = 'SVM'
 
     # train the model
