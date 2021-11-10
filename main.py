@@ -130,80 +130,52 @@ path_pneumonia_train = glob.glob("chest_xray_dataset\\train\\PNEUMONIA\\*.jpeg")
 path_normal_test = glob.glob("chest_xray_dataset\\test\\NORMAL\\*.jpeg")
 path_pneumonia_test = glob.glob("chest_xray_dataset\\test\\PNEUMONIA\\*.jpeg")
 
-# array to store image files
-normal_img_train = []
-pneumonia_img_train = []
-
-normal_img_test = []
-pneumonia_img_test = []
-
-# read images into array
-print('[STATUS] Loading normal train images...')
-for img in tqdm(path_normal_train, ncols=100):
-    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-    normal_img_train.append(n)
-
-print('[STATUS] Loading pneumonia train images...')
-for img in tqdm(path_pneumonia_train, ncols=100):
-    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-    pneumonia_img_train.append(n)
-
-print('[STATUS] Loading normal test images...')
-for img in tqdm(path_normal_test, ncols=100):
-    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-    normal_img_test.append(n)
-
-print('[STATUS] Loading pneumonia test images...')
-for img in tqdm(path_pneumonia_test, ncols=100):
-    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE))
-    pneumonia_img_test.append(n)
-
-# empty list to hold feature vectors and train labels
+# empty list to hold train feature vectors and labels
 train_features = []
 train_labels = []
 
-# empty list to hold feature vectors and test labels
-test_features = []
-test_labels = []
-
-############################ HARALICK FEATURES OF TRAIN DATA ############################
-# extract haralick features of normal chest
+# Extract haralick features of train images into array
 print('[STATUS] Extracting haralick features of normal chests from train data...')
-for img in tqdm(normal_img_train, ncols=100):
-        img_class = 0 # normal
-        features = extract_features(img)
-        train_features.append(features)
-        train_labels.append(img_class)
-
-# extract haralick features of pneumonia chest
-print('[STATUS] Extracting haralick features of pneumonia chests from train data...')
-for img in tqdm(pneumonia_img_train, ncols=100):
-    img_class = 1 # pneumonia
-    features = extract_features(img)
+for img in tqdm(path_normal_train, ncols=100):
+    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE)) # convert image to grayscale
+    img_class = 0 # normal
+    features = extract_features(n)
     train_features.append(features)
     train_labels.append(img_class)
 
-total_train = len(normal_img_train) + len(pneumonia_img_train) # total train images
-train_features = np.array(train_features).reshape(total_train, vector) 
-
-############################ HARALICK FEATURES OF TEST DATA ############################
-# extract haralick features of normal chest
-print('[STATUS] Extracting haralick features of normal chests from test data...')
-for img in tqdm(normal_img_test, ncols=100):
-    img_class = 0 # normal
-    features = extract_features(img)
-    test_features.append(features)
-    test_labels.append(img_class)
-
-# extract haralick features of pneumonia chest
-print('[STATUS] Extracting haralick features of pneumonia chests from test data...')
-for img in tqdm(pneumonia_img_test, ncols=100):
+print('[STATUS] Extracting haralick features of pneumonia chests from train data...')
+for img in tqdm(path_pneumonia_train, ncols=100):
+    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE)) # convert image to grayscale
     img_class = 1 # pneumonia
-    features = extract_features(img)
+    features = extract_features(n)
+    train_features.append(features)
+    train_labels.append(img_class)
+
+total_train = len(train_labels) # total train images
+train_features = np.array(train_features).reshape(total_train, vector)
+
+# empty list to hold test feature vectors and labels
+test_features = []
+test_labels = []
+
+# Extract haralick features of test images into array
+print('[STATUS] Extracting haralick features of normal chests from test data...')
+for img in tqdm(path_normal_test, ncols=100):
+    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE)) # convert image to grayscale
+    img_class = 0 # normal
+    features = extract_features(n)
     test_features.append(features)
     test_labels.append(img_class)
 
-total_test = len(normal_img_test) + len(pneumonia_img_test) # total test images
+print('[STATUS] Extracting haralick features of pneumonia chests from test data...')
+for img in tqdm(path_pneumonia_test, ncols=100):
+    n = np.array(cv2.imread(img, cv2.IMREAD_GRAYSCALE)) # convert image to grayscale
+    img_class = 1 # pneumonia
+    features = extract_features(n)
+    test_features.append(features)
+    test_labels.append(img_class)
+
+total_test = len(test_features) # total test images
 test_features = np.array(test_features).reshape(total_test, vector)
 
 ############################ TRAINING ############################
