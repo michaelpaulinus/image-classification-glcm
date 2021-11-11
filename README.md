@@ -12,9 +12,9 @@ The dataset used for the project was taken from: https://www.kaggle.com/paultimo
  3) Support Vector Machines Based Classifier
  
  The accuracies achieved for the three classifiers were:
- 1) Multilayer Perceptron Based Classifier - 62.98%
+ 1) Multilayer Perceptron Based Classifier - 65.71%
  2) Naive Bayes Classifier - 70.35%
- 3) Support Vector Machines Based Classifier - 62.5%
+ 3) Support Vector Machines Based Classifier - 55.13%
 
  ### Installing OpenCV
  ```bash
