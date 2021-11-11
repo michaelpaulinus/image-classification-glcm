@@ -186,14 +186,13 @@ for i in range(3):
         clf = MLPClassifier(solver='adam', 
                             alpha=0.0001,
                             hidden_layer_sizes=(20, 30),
-                            max_iter=600)
+                            max_iter=1000)
         clf_str = 'MLP'
     elif clf_sel==1:
         clf = GaussianNB()
         clf_str = 'NBC'
     elif clf_sel==2:
-        # clf = LinearSVC()
-        clf = SVC(kernel='linear')
+        clf = SVC(kernel='linear', max_iter=1000)
         clf_str = 'SVM'
 
     # train the model
